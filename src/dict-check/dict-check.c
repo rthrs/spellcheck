@@ -1,3 +1,13 @@
+/** @defgroup dict-check Moduł dict-check
+	Spell-checker.
+  */
+/** @file
+  Implementacja spell-checker'a.
+  @ingroup dict-check
+  @author Artur Myszkowski <am347189@students.mimuw.edu.pl>
+  @date 2015-05-24
+ */
+
 #include "dictionary.h"
 #include <string.h>
 #include <locale.h>
@@ -10,13 +20,9 @@
   */
 #define MAX_WORD_LENGTH 63
 
-
-/** Makro służące do otrzymania stałej w formie napisu */
-#define str(x)          # x
-/** Makro służące do otrzymania stałej w formie napisu */
-#define xstr(x)         str(x)
-
-
+/** @name Funkcje pomocnicze
+  @{
+ */
 
 /** Zamienia słowo na złożone z małych liter.
   @param[in,out] word Modyfikowane słowo.
@@ -32,7 +38,14 @@ int make_lowercase(wchar_t *word)
 	return 1;
 }
 
-
+/**
+ * Wypisuje na stderr podpowiedzi dla słowa 'word'.
+ * @param[in] dict Słownik.
+ * @param[in] w Wiersz.
+ * @param[in] z Znak.
+ * @param[in] word Słowo.
+ * @param[in] word_lower_case Słowo wyłącznie małymi literami.
+ */
 void write_hints(struct dictionary *dict, int w, int z, wchar_t *word,
 				 wchar_t *word_lower_case)
 {
@@ -50,7 +63,18 @@ void write_hints(struct dictionary *dict, int w, int z, wchar_t *word,
 	word_list_done(&list);
 }
 
-
+/**
+ * Przetwarza stdin.
+ * Wczytywany jeden znak wejścia. Jeśli nie jest literą, zostaje przepisany
+ * na stdin. W p.p. zostają wczytywane znaki dopóki są literami. Utworzone przez
+ * nie słowo przepisywane jest na stdin, z dopisanym na początku '#' jeśli słowo
+ * to nie występuje w słowniku 'dict'.
+ * @param[in] dict Słownik.
+ * @param[in] v Należy wpisać 0, jeśli program uruchomiony z parametrem -v.
+ * @param[in] w Aktualny wiersz.
+ * @param[in] z Aktualny numer znaku.
+ * @return 0 jeśli EOF, 1 w p.p.
+ */
 int read(struct dictionary *dict, int v, int *w, int *z)
 {
 	wchar_t c[2] = L"";
@@ -104,8 +128,11 @@ int read(struct dictionary *dict, int v, int *w, int *z)
 	return 1;
 }
 
-/*
- * Zakladam ze jedyne poprawne wywolania programu to:
+/**@}*/
+
+/**
+ * Funkcja main.
+ * Jedyne poprawne wywołanie programu to:
  * ./dict-check dict lub ./dict-check -v dict
  */
 int main(int argc, char *argv[]){
