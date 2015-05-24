@@ -169,7 +169,10 @@ int dictionary_insert(struct dictionary *dict, const wchar_t *word)
 int dictionary_save(const struct dictionary *dict, FILE* stream)
 {
 	int valid = 0;
-	if (fprintf(stream, "%ls%d", &dict->key, dict->children_size) < 0)
+	wchar_t key[2];
+	key[0] = dict->key;
+	key[1] = L'\0';
+	if (fprintf(stream, "%ls%d", key, dict->children_size) < 0)
 		return -1;
 	for (int i = 0; i < dict->children_size; i++)
 		valid += dictionary_save(*(dict->children + i), stream);
@@ -313,10 +316,10 @@ static void insert_at(const wchar_t *src, const wchar_t *c, int pos,
 {
 	wchar_t fst[pos + 1];
 	fst[0] = L'\0';
-	wchar_t snd[len - pos];
+	wchar_t snd[len - pos + 1];
 	snd[0] = L'\0';
 	wcsncpy(fst, src, pos);
-	fst[pos + 1] = L'\0';
+	fst[pos] = L'\0';
 	wcsncpy(snd, &src[pos], len - pos);
 	snd[len - pos] = L'\0';
 	wcscat(*dst, fst);
@@ -370,32 +373,33 @@ static void possible_hints(const struct dictionary *dict, const wchar_t *word,
 	int size = 0;
 	for (int i = 0; i < (wcslen(word) + 1); i++)
 	{
-		wchar_t *h = malloc(wcslen(word) * sizeof(wchar_t));
-		wcscpy(h, word);
-		delete_at(h, i, wcslen(word));
-		hints[size] = h;
+		wchar_t *h1 = malloc(wcslen(word) * sizeof(wchar_t *));
+		wcscpy(h1, word);
+		delete_at(h1, i, wcslen(word));
+		hints[size] = h1;
 		size++;
 	}
 	for (int i = 0; i < wcslen(word); i++)
 		for (int j = 0; alphabet[j]; j++)
 		{
-			wchar_t *h = malloc((wcslen(word) + 1) * sizeof(wchar_t));
-			wcscpy(h, word);
-			replace_at(h, alphabet[j], i, wcslen(word));
-			hints[size] = h;
+			wchar_t *h2 = malloc((wcslen(word) + 1) * sizeof(wchar_t *));
+			wcscpy(h2, word);
+			replace_at(h2, alphabet[j], i, wcslen(word));
+			hints[size] = h2;
 			size++;
 		}
 
-	for (int i = 0; i < wcslen(word); i++)
+	for (int i = 0; i <= wcslen(word); i++)
 		for (int j = 0; alphabet[j]; j++)
 		{
-			wchar_t *h = malloc((wcslen(word) + 2) * sizeof(wchar_t));
-			h[0] = L'\0';
+			wchar_t *h3 = malloc((wcslen(word) + 2) * sizeof(wchar_t *));
+			h3[0] = L'\0';
 			wchar_t c[2];
+			c[0] = alphabet[j];
 			c[1] = L'\0';
-			replace_at(c, alphabet[j], 0, 1);
-			insert_at(word, c, i, wcslen(word), &h);
-			hints[size] = h;
+			//replace_at(c, alphabet[j], 0, 1);
+			insert_at(word, c, i, wcslen(word), &h3);
+			hints[size] = h3;
 			size++;
 		}
 	*hints_size = &size;
@@ -424,7 +428,6 @@ void dictionary_hints(const struct dictionary *dict, const wchar_t* word,
 	for (int i = 0; i < *n; i++)
 		if (dictionary_find(dict, hints[i]) && !word_list_find(list, hints[i]))
 			word_list_add(list, hints[i]);
-/* ZWOLNIC PAMIEC z hints... */
 	for (int i = 0; i < *n; i++)
 		free(hints[i]);
 

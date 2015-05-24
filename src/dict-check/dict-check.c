@@ -33,10 +33,11 @@ int make_lowercase(wchar_t *word)
 }
 
 
-void write_hints(struct dictionary *dict, int w, int z, wchar_t *word)
+void write_hints(struct dictionary *dict, int w, int z, wchar_t *word,
+				 wchar_t *word_lower_case)
 {
 	struct word_list list;
-	dictionary_hints(dict, word, &list);
+	dictionary_hints(dict, word_lower_case, &list);
 	const wchar_t * const *a = word_list_get(&list);
 	fprintf(stderr, "%d,%d %ls: ", w, z, word);
 	for (size_t i = 0; i < word_list_size(&list); ++i)
@@ -53,15 +54,6 @@ void write_hints(struct dictionary *dict, int w, int z, wchar_t *word)
 int read(struct dictionary *dict, int v, int *w, int *z)
 {
 	wchar_t c[2] = L"";
-	/*
-	if (scanf("%" xstr(1) "ls", c) <= 0)
-	{
-		fprintf(stderr, "Failed to read word\n");
-		exit(1);
-	}
-	*/
-	/* numer znaku */
-
 	if (fgetws (c, 2, stdin) == NULL)
 		return 0;
 	(*z)++;
@@ -81,11 +73,6 @@ int read(struct dictionary *dict, int v, int *w, int *z)
 		{
 			if (fgetws (c, 2, stdin) == NULL)
 				return 0;
-			if (c[0] == L'\n')
-			{
-				(*w)++;
-				*z = 0;
-			}
 			if (iswalpha(c[0]))
 				wcscat(word, c);
 		}
@@ -101,10 +88,18 @@ int read(struct dictionary *dict, int v, int *w, int *z)
 		{
 			printf("#%ls", word);
 			if (v)
-				write_hints(dict, *w, *z, word);
+				write_hints(dict, *w, *z, word, word_lower_case);
+		}
+		if (c[0] == L'\n')
+		{
+			(*w)++;
+			*z = 0;
+		}
+		else
+		{
+			*z += wcslen(word);
 		}
 		printf("%ls", c);
-		*z += wcslen(word) + 1;
 	}
 	return 1;
 }
