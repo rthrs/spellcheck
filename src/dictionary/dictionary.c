@@ -50,7 +50,7 @@ static void dictionary_free(struct dictionary *dict)
 static void put_child(struct dictionary *dict, struct dictionary *child)
 {
 	if (child == NULL)
-		return; // DODANE po napisaniu deserialize i na jego potrzeby;
+		return;
 	int children_size = dict->children_size;
 	if (dict->children_size == 0)
 	{
@@ -71,7 +71,6 @@ static void put_child(struct dictionary *dict, struct dictionary *child)
 			*(dict->children + i) = *(dict->children + i - 1);
 			i--;
 		}
-		//assert(wcscmp(&(*dict->children + i)->key, &child->key) != 0);
 		*(dict->children + i) = child;
 		dict->children_size++;
 	}
@@ -140,10 +139,6 @@ int dictionary_insert(struct dictionary *dict, const wchar_t *word)
 		put_child(node, create_node(NULL_MARKER));
 		return 1;
 	}
-
-	/* Jak takie slowo juz istnieje to false */
-//	if (dictionary_find(dict, word))
-//		return 0;
 	node = dict;
 	struct dictionary *found = NULL;
 	while (find_child(node, &found, *word) && *word)
@@ -282,7 +277,6 @@ static int delete_helper(struct dictionary *dict, struct dictionary *prev,
 	return 0;
 }
 
-/* moze ulepszyc zeby obylo sie bez dict find */
 int dictionary_delete(struct dictionary *dict, const wchar_t *word)
 {
 	if (dict == NULL || word == NULL)
@@ -397,7 +391,6 @@ static void possible_hints(const struct dictionary *dict, const wchar_t *word,
 			wchar_t c[2];
 			c[0] = alphabet[j];
 			c[1] = L'\0';
-			//replace_at(c, alphabet[j], 0, 1);
 			insert_at(word, c, i, wcslen(word), &h3);
 			hints[size] = h3;
 			size++;

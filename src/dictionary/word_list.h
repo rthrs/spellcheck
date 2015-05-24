@@ -15,32 +15,21 @@
 #include <wchar.h>
 
 /**
-  Maksymalna liczba słów przechowywana w liście słów.
+  Początkowy rozmiar tablicy słów.
   */
-#define WORD_LIST_MAX_WORDS 32
-
-
-/**
-  Łączna liczba znaków słów przechowywanych w liście słów
-  włącznie ze znakami \0 kończącymi słowo.
-  */
-#define WORD_LIST_SUM 1024
+# define STD_BUFFER_SIZE 50
 
 /**
   Struktura przechowująca listę słów.
-  Należy używać funkcji operujących na strukturze,
-  gdyż jej implementacja może się zmienić.
   */
 struct word_list
 {
     /// Liczba słów.
     size_t size;
-    /// Łączna liczba znaków.
+	/// Aktualny rozmiar tablicy dynamicznej.
     size_t buffer_size;
     /// Tablica słów.
-    const wchar_t *array[WORD_LIST_MAX_WORDS];
-    /// Bufor, w którym pamiętane są słowa.
-    wchar_t buffer[WORD_LIST_SUM];
+	wchar_t **array;
 };
 
 /**
@@ -82,7 +71,7 @@ size_t word_list_size(const struct word_list *list)
 static inline
 const wchar_t * const * word_list_get(const struct word_list *list)
 {
-    return list->array;
+	return (const wchar_t * const *) list->array;
 }
 
 #endif /* __WORD_LIST_H__ */
