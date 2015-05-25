@@ -176,7 +176,8 @@ static void delete_child(struct dictionary *prev, struct dictionary *child)
 	assert(child->children_size == 0);
 	if (prev->children_size == 1)
 	{
-		free(*prev->children);
+		free(child);
+		free(prev->children);
 		prev->children = NULL;
 		prev->children_size--;
 		return;
@@ -192,7 +193,6 @@ static void delete_child(struct dictionary *prev, struct dictionary *child)
 			j++;
 		}
 	}
-	//free(child->children);
 	free(child);
 	free(prev->children);
 	prev->children = new_children;
@@ -277,7 +277,7 @@ static int deserialize(struct dictionary **dict, FILE* stream)
  * @param[in] pos Pozycja usunięcia.
  * @param[in] len Długość słowa.
  */
-static void delete_at(wchar_t *src, int pos, int len)
+static void delete_at(wchar_t *src, size_t pos, size_t len)
 {
 	wchar_t *dst;
 	if (pos < 0)
@@ -298,8 +298,8 @@ static void delete_at(wchar_t *src, int pos, int len)
  * @param[in] len Długość słowa.
  * @param[in,out] dst Wskaźnik na nowe słowo.
  */
-static void insert_at(const wchar_t *src, const wchar_t *c, int pos,
-					  int len, wchar_t **dst)
+static void insert_at(const wchar_t *src, const wchar_t *c, size_t pos,
+					  size_t len, wchar_t **dst)
 {
 	wchar_t fst[pos + 1];
 	fst[0] = L'\0';
@@ -321,7 +321,7 @@ static void insert_at(const wchar_t *src, const wchar_t *c, int pos,
  * @param[in] pos Pozycja zamiany.
  * @param[in] len Długość słowa.
  */
-static void replace_at(wchar_t *src, const wchar_t c, int pos, int len)
+static void replace_at(wchar_t *src, const wchar_t c, size_t pos, size_t len)
 {
 	if (pos < 0)
 		return;
@@ -343,9 +343,12 @@ static void alphabet_helper(const struct dictionary *dict, wchar_t *ptra)
 		ptra = NULL;
 		return;
 	}
-	if (dict->key != NULL_MARKER && wcschr(ptra, dict->key) == NULL)
+	wchar_t k[2];
+	k[0] = dict->key;
+	k[1] = L'\0';
+	if (dict->key != NULL_MARKER && wcschr(ptra, k[0]) == NULL)
 	{
-		wcscat(ptra, &dict->key);
+		wcscat(ptra, k);
 	}
 	for (int i = 0; i < dict->children_size; i++)
 		alphabet_helper(*(dict->children + i), ptra);
@@ -360,9 +363,8 @@ static void alphabet_helper(const struct dictionary *dict, wchar_t *ptra)
 static const wchar_t * create_alphabet(const struct dictionary *dict)
 {
 	static wchar_t alphabet[ALPHABET_SIZE];
-	wchar_t *ptra = alphabet;
-	alphabet_helper(dict, ptra);
-	return ptra;
+	alphabet_helper(dict, alphabet);
+	return alphabet;
 }
 
 /**
@@ -393,7 +395,7 @@ static void possible_hints(const struct dictionary *dict, const wchar_t *word,
 	const wchar_t * alphabet = create_alphabet(dict);
 	wchar_t *hints[HINTS_SIZE];
 	int size = 0;
-	for (int i = 0; i < (wcslen(word) + 1); i++)
+	for (size_t i = 0; i < (wcslen(word) + 1); i++)
 	{
 		wchar_t *h1 = malloc(wcslen(word) * sizeof(wchar_t *));
 		wcscpy(h1, word);
@@ -401,7 +403,7 @@ static void possible_hints(const struct dictionary *dict, const wchar_t *word,
 		hints[size] = h1;
 		size++;
 	}
-	for (int i = 0; i < wcslen(word); i++)
+	for (size_t i = 0; i < wcslen(word); i++)
 		for (int j = 0; alphabet[j]; j++)
 		{
 			wchar_t *h2 = malloc((wcslen(word) + 1) * sizeof(wchar_t *));
@@ -411,7 +413,7 @@ static void possible_hints(const struct dictionary *dict, const wchar_t *word,
 			size++;
 		}
 
-	for (int i = 0; i <= wcslen(word); i++)
+	for (size_t i = 0; i <= wcslen(word); i++)
 		for (int j = 0; alphabet[j]; j++)
 		{
 			wchar_t *h3 = malloc((wcslen(word) + 2) * sizeof(wchar_t *));
